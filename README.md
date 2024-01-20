@@ -45,11 +45,11 @@ For a example, you can see [demo/yun](./demo/yun/) folder.
 
 ## Features
 
-- ⚡️ [Vue 3](https://github.com/vuejs/vue-next), [Vite 4](https://github.com/vitejs/vite), [pnpm](https://pnpm.js.org/), [ESBuild](https://github.com/evanw/esbuild) - born with fastness
+- ⚡️ [Vue 3](https://github.com/vuejs/vue-next), [Vite 5](https://github.com/vitejs/vite), [pnpm](https://pnpm.js.org/), [ESBuild](https://github.com/evanw/esbuild) - born with fastness
 - 🔥 Hot Reload with Config & Markdown
 - 🔧 Type Tooltip for all config by `valaxy.config.ts`
 - 🗒 Extended Markdown Frontmatter
-- 🗂 File based routing via [vite-plugin-pages](https://github.com/hannoeru/vite-plugin-pages)
+- 🗂 File based routing via [unplugin-vue-router](https://github.com/posva/unplugin-vue-router)
 - 📦 Components auto importing via [unplugin-vue-components](https://github.com/antfu/unplugin-vue-components)
 - 🖨 Static-site generation (SSG) via [vite-ssg](https://github.com/antfu/vite-ssg) (SPA is OK!)
 - 🕸 RSS & Sitemap

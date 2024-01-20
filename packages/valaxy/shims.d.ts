@@ -1,7 +1,15 @@
 import 'vue-router'
 
+import './client/typed-router'
+
 import type { Post } from './types'
 import type { Header } from './node/markdown'
+
+declare module 'valaxy-addon-*'
+declare module '@docsearch/js' {
+  function docsearch<T = any>(props: T): void
+  export default docsearch
+}
 
 declare interface Window {
   // algolia
@@ -37,7 +45,7 @@ declare module '/@valaxyjs/context' {
 declare module '/@valaxyjs/addons' {
   import type { DefineComponent } from 'vue'
 
-  const components: { props: any; component: DefineComponent<object, object, any> }[]
+  const components: { props: any, component: DefineComponent<object, object, any> }[]
   export default components
 }
 

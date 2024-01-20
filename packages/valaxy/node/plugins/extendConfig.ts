@@ -2,11 +2,10 @@ import { dirname, join, resolve } from 'node:path'
 import type { Alias, AliasOptions, InlineConfig, Plugin } from 'vite'
 import { mergeConfig, searchForWorkspaceRoot } from 'vite'
 import isInstalledGlobally from 'is-installed-globally'
-import fs from 'fs-extra'
 import { uniq } from '@antfu/utils'
+import { getIndexHtml } from '../common'
 import type { ResolvedValaxyOptions } from '../options'
 import { resolveImportPath, toAtFS } from '../utils'
-import { getIndexHtml } from '../common'
 
 /**
  * dependencies used by client
@@ -37,6 +36,9 @@ const clientDeps = [
   'fuse.js',
   'medium-zoom',
   'vanilla-lazyload',
+
+  // dev
+  '@vue/devtools-api',
 ]
 
 /**
@@ -49,8 +51,16 @@ const EXCLUDE = [
   '@vueuse/shared',
   '@unocss/reset',
   'unocss',
+
   'vue',
+  // 'vue-i18n',
+  'vue-router',
   'vue-demi',
+  '@vue/devtools-api',
+
+  // addon, todo add externals for addon
+  // main field error
+  'meting',
 
   // internal
   'valaxy',
@@ -68,7 +78,8 @@ export function createConfigPlugin(options: ResolvedValaxyOptions): Plugin {
 
   return {
     name: 'valaxy:site',
-
+    // before devtools
+    enforce: 'pre',
     config(config) {
       const injection: InlineConfig = {
         // root: options.userRoot,
@@ -119,25 +130,12 @@ export function createConfigPlugin(options: ResolvedValaxyOptions): Plugin {
       return mergeConfig(config, injection)
     },
 
-    configureServer(server) {
-      // serve our index.html after vite history fallback
-      return () => {
-        server.middlewares.use(async (req, res, next) => {
-          if (req.url!.endsWith('.html')) {
-            res.setHeader('Content-Type', 'text/html')
-            res.statusCode = 200
-            res.end(await getIndexHtml(options))
-            return
-          }
-          // patch rss
-          if (req.url! === '/atom.xml') {
-            res.setHeader('Content-Type', 'application/xml')
-            res.statusCode = 200
-            res.end(await fs.readFile(resolve(options.userRoot, 'dist/atom.xml'), 'utf-8'))
-            return
-          }
-          next()
-        })
+    async transformIndexHtml(html) {
+      // console.log(toAtFS(options.clientRoot))
+      html = await getIndexHtml(options, html)
+      return {
+        html,
+        tags: [],
       }
     },
   }
@@ -150,7 +148,10 @@ export function getDefine(_options: ResolvedValaxyOptions): Record<string, any> 
   // https://github.com/intlify/vue-i18n-next/blob/dab6db19a1ef917425939275a41dfde9b6c61fe9/packages/vue-i18n-core/src/misc.ts#L20
   // I create a issue https://github.com/intlify/vue-i18n-next/issues/961
 
-  return {}
+  return {
+    __VUE_PROD_DEVTOOLS__: false,
+    __INTLIFY_PROD_DEVTOOLS__: false,
+  }
 }
 
 export function getAlias(options: ResolvedValaxyOptions): AliasOptions {
@@ -179,10 +180,18 @@ export function getAlias(options: ResolvedValaxyOptions): AliasOptions {
       replacement: `${toAtFS(`${resolve(addon.root)}`)}/client/`,
     })
     alias.push({
+      find: `${addon.name}/App.vue`,
+      replacement: `${toAtFS(resolve(addon.root))}/App.vue`,
+    })
+    alias.push({
       find: addon.name,
       replacement: `${toAtFS(resolve(addon.root))}/client/index.ts`,
     })
   })
+  // do not need it
+  // alias.push(...[
+  //   { find: /^valaxy-addon-(.*)$/, replacement: toAtFS(resolve(options.themeRoot, '../valaxy-addon-$1/client/index.ts')) },
+  // ])
 
   // adapt for not exist addon
   alias.push({
@@ -190,8 +199,5 @@ export function getAlias(options: ResolvedValaxyOptions): AliasOptions {
     replacement: toAtFS(resolve(options.clientRoot, './addons/index.ts')),
   })
 
-  // alias.push(...[
-  //   { find: /^valaxy-addon-(.*)$/, replacement: toAtFS(resolve(options.themeRoot, '../valaxy-addon-$1/client/index.ts')) },
-  // ])
   return alias
 }

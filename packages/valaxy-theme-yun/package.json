@@ -1,6 +1,6 @@
 {
   "name": "valaxy-theme-yun",
-  "version": "0.15.10",
+  "version": "0.17.1",
   "author": {
     "email": "me@yunyoujun.cn",
     "name": "YunYouJun",
@@ -12,18 +12,19 @@
     "url": "https://github.com/YunYouJun/valaxy/tree/main/packages/valaxy-theme-yun"
   },
   "exports": {
+    "./theme": "./types/index.d.ts",
     "./*": "./*"
   },
-  "main": "node/index.ts",
-  "types": "types/index.d.ts",
+  "main": "index.ts",
+  "module": "index.ts",
   "dependencies": {
     "@explosions/fireworks": "^0.0.2",
-    "@iconify-json/ant-design": "^1.1.10",
-    "@iconify-json/simple-icons": "^1.1.75",
-    "animejs": "^3.2.1"
+    "@iconify-json/ant-design": "^1.1.13",
+    "@iconify-json/simple-icons": "^1.1.88",
+    "animejs": "^3.2.2"
   },
   "devDependencies": {
-    "@types/animejs": "^3.1.10",
+    "@types/animejs": "^3.1.12",
     "valaxy": "workspace:*",
     "valaxy-addon-waline": "workspace:*"
   }

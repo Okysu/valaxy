@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { computed, onMounted, ref } from 'vue'
-import type { Category, Post } from 'valaxy'
+import type { CategoryList, Post } from 'valaxy'
 import { isCategoryList, useInvisibleElement } from 'valaxy'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
@@ -8,7 +8,7 @@ import { useRoute, useRouter } from 'vue-router'
 const props = withDefaults(defineProps<{
   parentKey: string
   // to eliminate the warning
-  category: Category
+  category: Post | CategoryList
   level?: number
 
   /**
@@ -74,7 +74,7 @@ onMounted(() => {
 
   <template v-if="!collapse">
     <ul>
-      <li v-for="categoryItem, i in category.children" :key="i" class="post-list-item" m="l-4">
+      <li v-for="categoryItem, i in category.children.values()" :key="i" class="post-list-item" m="l-4">
         <template v-if="isCategoryList(categoryItem)">
           <YunCategory
             :parent-key="parentKey ? `${parentKey}/${categoryItem.name}` : categoryItem.name"
@@ -84,10 +84,10 @@ onMounted(() => {
         </template>
 
         <template v-else>
-          <router-link v-if="categoryItem.title" :to="categoryItem.path || ''" class="inline-flex items-center">
+          <RouterLink v-if="categoryItem.title" :to="categoryItem.path || ''" class="inline-flex items-center">
             <div i-ri-file-text-line />
             <span m="l-1" font="serif black">{{ getTitle(categoryItem) }}</span>
-          </router-link>
+          </RouterLink>
         </template>
       </li>
     </ul>

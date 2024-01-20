@@ -45,11 +45,11 @@ pnpm create valaxy
 
 ## 功能
 
-- ⚡️ [Vue 3](https://github.com/vuejs/vue-next), [Vite 4](https://github.com/vitejs/vite), [pnpm](https://pnpm.js.org/), [ESBuild](https://github.com/evanw/esbuild) - 快速
+- ⚡️ [Vue 3](https://github.com/vuejs/vue-next), [Vite 5](https://github.com/vitejs/vite), [pnpm](https://pnpm.js.org/), [ESBuild](https://github.com/evanw/esbuild) - 快速
 - 🔥 配置 & Markdown 文件热更新
 - 🔧 `valaxy.config.ts` 的所有配置项皆有类型提示
 - 🗒 扩展 Markdown Frontmatter
-- 🗂 实现基于文件路由 by [vite-plugin-pages](https://github.com/hannoeru/vite-plugin-pages)
+- 🗂 实现基于文件路由 by [unplugin-vue-router](https://github.com/posva/unplugin-vue-router)
 - 📦 自动引入组件 by [unplugin-vue-components](https://github.com/antfu/unplugin-vue-components)
 - 🖨 静态站点生成 (SSG) by [vite-ssg](https://github.com/antfu/vite-ssg) (支持单页面应用！)
 - 🕸 RSS & Sitemap

@@ -16,13 +16,20 @@ import type { TocPluginOptions } from '@mdit-vue/plugin-toc'
 
 // import type { lazyloadOptions } from './plugins/markdown-it/lazyload'
 
+import type {
+  ComponentPluginOptions,
+} from '@mdit-vue/plugin-component'
 import type { Blocks } from './plugins/markdown-it/container'
 
 export type ThemeOptions =
   | IThemeRegistration
-  | { light: IThemeRegistration; dark: IThemeRegistration }
+  | { light: IThemeRegistration, dark: IThemeRegistration }
 
 export interface MarkdownOptions {
+  /**
+   * Setup markdown-it instance before applying plugins
+   */
+  preConfig?: (md: MarkdownIt) => void
   /**
    * markdown-it options
    */
@@ -45,6 +52,11 @@ export interface MarkdownOptions {
   sfc?: SfcPluginOptions
   toc?: TocPluginOptions
   /**
+   * Options for `@mdit-vue/plugin-component`
+   * @see https://github.com/mdit-vue/mdit-vue/tree/main/packages/plugin-component
+   */
+  component?: ComponentPluginOptions
+  /**
    * @see [markdown-it-image-figures](https://www.npmjs.com/package/markdown-it-image-figures)
    */
   imageFigures?: {
@@ -56,6 +68,9 @@ export interface MarkdownOptions {
 
   lineNumbers?: boolean
 
+  /**
+   * @see https://katex.org/docs/options.html
+   */
   katex?: KatexOptions
   /**
    * shiki

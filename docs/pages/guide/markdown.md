@@ -29,7 +29,7 @@ end: false
 
 :tada: :100:
 
-A [list of all emojis](https://github.com/markdown-it/markdown-it-emoji/blob/master/lib/data/full.json) is available.
+A [list of all emojis](https://github.com/markdown-it/markdown-it-emoji/blob/master/lib/data/full.mjs) is available.
 
 ## Table of Contents
 
@@ -252,7 +252,6 @@ You can also specify the language inside the braces (`{}`) like this:
 
 This is helpful if source language cannot be inferred from your file extension.
 
-
 ## Code Groups
 
 You can group multiple code blocks like this:
@@ -292,7 +291,7 @@ export default config
 
 ```js [config.js]
 /**
- * @type {import('vitepress').UserConfig}
+ * @type {import('valaxy').UserConfig}
  */
 const config = {
   // ...
@@ -302,7 +301,7 @@ export default config
 ```
 
 ```ts [config.ts]
-import type { UserConfig } from 'vitepress'
+import type { UserConfig } from 'valaxy'
 
 const config: UserConfig = {
   // ...
@@ -340,7 +339,6 @@ You can also [import snippets](#import-code-snippets) in code groups:
 <<< @/snippets/snippet-with-region.js#snippet{1,2 ts:line-numbers} [snippet with region]
 
 :::
-
 
 ## Container
 
@@ -423,7 +421,26 @@ $$ x = {-b \pm \sqrt{b^2-4ac} \over 2a} $$
 | $\nabla \times \vec{\mathbf{E}}\, +\, \frac1c\, \frac{\partial\vec{\mathbf{B}}}{\partial t}  = \vec{\mathbf{0}}$                                                          | curl of $\vec{\mathbf{E}}$ is proportional to the rate of change of $\vec{\mathbf{B}}$ |
 | $\nabla \times \vec{\mathbf{B}} -\, \frac1c\, \frac{\partial\vec{\mathbf{E}}}{\partial t} = \frac{4\pi}{c}\vec{\mathbf{j}}    \nabla \cdot \vec{\mathbf{E}} = 4 \pi \rho$ | _wha?_                                                                                 |
 
-## Markdown File Inclusion
+### Custom KaTeX Options
+
+> [KaTeX options](https://katex.org/docs/options.html)
+
+```ts
+// valaxy.config.ts
+export default defineValaxyConfig({
+  markdown: {
+    /**
+     * KaTeX options
+     * @see https://katex.org/docs/options.html
+     */
+    katex: {
+      strict: false
+    }
+  }
+})
+```
+
+## Markdown File Inclusion<!--  -->
 
 ::: tip
 You can also prefix the markdown path with `@`, it will act as the source root. By default, it's the Valaxy project root.
@@ -514,3 +531,71 @@ The format of the selected line range can be: `{3,}`, `{,10}`, `{1,10}`
 ::: warning
 Note that this does not throw errors if your file is not present. Hence, when using this feature make sure that the contents are being rendered as expected.
 :::
+
+## UnoCSS
+
+We integrated [UnoCSS](https://unocss.dev), so you can use it in your markdown file.
+
+Freedom to control your layout!
+
+> 更多配置见 [UnoCSS | 扩展配置](/guide/config/extend#unocss-presets)。
+
+<div class="flex flex-col">
+
+<div class="flex grid-cols-3">
+  <div>
+
+  ![image](https://yunyoujun.cn/images/avatar.jpg)
+  </div>
+
+  <div>
+
+  ![image](https://yunyoujun.cn/images/avatar.jpg)
+  </div>
+
+  <div>
+
+  ![image](https://yunyoujun.cn/images/avatar.jpg)
+  </div>
+</div>
+
+<div class="flex grid-cols-2 justify-center items-center">
+
+![image](https://cdn.yunyoujun.cn/img/bg/stars-timing-1.jpg)
+
+![image](https://fastly.jsdelivr.net/gh/YunYouJun/cdn/img/bg/astronaut.webp)
+
+</div>
+
+</div>
+
+```html
+<div class="flex flex-col">
+
+<div class="flex grid-cols-3">
+  <div>
+
+  ![image](https://yunyoujun.cn/images/avatar.jpg)
+  </div>
+
+  <div>
+
+  ![image](https://yunyoujun.cn/images/avatar.jpg)
+  </div>
+
+  <div>
+
+  ![image](https://yunyoujun.cn/images/avatar.jpg)
+  </div>
+</div>
+
+<div class="flex grid-cols-2 justify-center items-center">
+
+![image](https://cdn.yunyoujun.cn/img/bg/stars-timing-1.jpg)
+
+![image](https://fastly.jsdelivr.net/gh/YunYouJun/cdn/img/bg/astronaut.webp)
+
+</div>
+
+</div>
+```

@@ -1,7 +1,10 @@
 import type { ViteSSGContext } from 'vite-ssg'
 import { ViteSSG } from 'vite-ssg'
-import generatedRoutes from 'virtual:generated-pages'
+
+import { routes } from 'vue-router/auto/routes'
 import { setupLayouts } from 'virtual:generated-layouts'
+
+import { initValaxyConfig, valaxyConfigSymbol } from 'valaxy'
 import AppLink from './components/AppLink.vue'
 
 import App from './App.vue'
@@ -18,12 +21,6 @@ import 'uno.css'
 
 import setupMain from './setup/main'
 
-const routes = setupLayouts(import.meta.env.DEV
-  ? generatedRoutes
-  : generatedRoutes.filter(i =>
-    i.meta && i.meta.frontmatter && !i.meta.frontmatter.draft,
-  ))
-
 /**
  * register global components
  * @param ctx
@@ -32,13 +29,34 @@ export function registerComponents(ctx: ViteSSGContext) {
   ctx.app.component('AppLink', AppLink)
 }
 
+// fix chinese path
+routes.forEach((i) => {
+  i.children?.forEach((j) => {
+    j.path = encodeURI(j.path)
+  })
+})
+
+// filter children recursive
+function filterDraft(routes: any[]) {
+  return routes.filter((i) => {
+    if (i.children)
+      i.children = filterDraft(i.children)
+
+    return !i.meta?.frontmatter?.draft
+  })
+}
+
 // not filter hide for ssg
+const routesWithLayout = setupLayouts(import.meta.env.DEV
+  ? routes
+  : filterDraft(routes),
+)
 
 // https://github.com/antfu/vite-ssg
 export const createApp = ViteSSG(
   App,
   {
-    routes,
+    routes: routesWithLayout,
     base: import.meta.env.BASE_URL,
     scrollBehavior(to, from) {
       if (to.path !== from.path)
@@ -46,7 +64,12 @@ export const createApp = ViteSSG(
     },
   },
   (ctx) => {
+    // app-level provide
+    const { app } = ctx
+    const config = initValaxyConfig()
+    app.provide(valaxyConfigSymbol, config)
+
     registerComponents(ctx)
-    setupMain(ctx)
+    setupMain(ctx, config)
   },
 )

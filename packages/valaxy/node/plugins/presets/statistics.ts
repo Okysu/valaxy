@@ -2,7 +2,7 @@ import { existsSync, readFileSync } from 'node:fs'
 import type { SiteConfig } from 'valaxy/types'
 import type { ValaxyExtendConfig } from '../../types'
 
-export interface CountData { cn: number; en: number }
+export interface CountData { cn: number, en: number }
 export type ReadTimeOptions = SiteConfig['statistics']['readTime']
 
 /**
@@ -56,8 +56,9 @@ export function presetStatistics({
   route: Parameters<Required<ValaxyExtendConfig>['extendMd']>[0]['route']
   options: SiteConfig['statistics']
 }) {
-  if (existsSync(route.component)) {
-    const file = readFileSync(route.component, 'utf-8')
+  const absolutePath = route.components.get('default') || ''
+  if (existsSync(absolutePath)) {
+    const file = readFileSync(absolutePath, 'utf-8')
     const { wordCount, readingTime } = statistics(file, {
       readTime: Object.assign({
         speed: {

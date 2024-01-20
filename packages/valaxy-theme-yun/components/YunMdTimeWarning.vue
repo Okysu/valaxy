@@ -1,35 +1,33 @@
 <script lang="ts" setup>
 import { computed } from 'vue'
-import type { Post } from 'valaxy'
+import { useFrontmatter } from 'valaxy'
 
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
 
 import { useI18n } from 'vue-i18n'
 
-const props = defineProps<{
-  frontmatter: Post
-}>()
+const fm = useFrontmatter()
 
 dayjs.extend(relativeTime)
 
 const { t } = useI18n()
 
 /**
- * when the post is updated more than 30 days ago, show a warning
- * default 30 days, you can set `time_warning` in frontmatter to change it
+ * when the post is updated more than 180 days ago, show a warning
+ * default 180 days, you can set `time_warning` in frontmatter to change it
  */
 const time_warning = computed(() => {
-  const diff = dayjs().valueOf() - dayjs(props.frontmatter.updated).valueOf()
-  if (typeof props.frontmatter.time_warning === 'number')
-    return diff > props.frontmatter.time_warning
+  const diff = dayjs().valueOf() - dayjs(fm.value.updated || fm.value.date).valueOf()
+  if (typeof fm.value.time_warning === 'number')
+    return diff > fm.value.time_warning
   else
-    return props.frontmatter.time_warning || diff > 30 * 24 * 60 * 60 * 1000
+    return fm.value.time_warning
 })
 </script>
 
 <template>
-  <blockquote v-if="time_warning" op="80">
-    {{ t('post.time_warning', { ago: dayjs(frontmatter.updated).fromNow() }) }}
+  <blockquote v-if="time_warning" class="yun-time-warning" op="80">
+    {{ t('post.time_warning', { ago: dayjs(fm.updated).fromNow() }) }}
   </blockquote>
 </template>

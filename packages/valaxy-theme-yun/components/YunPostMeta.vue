@@ -30,14 +30,14 @@ const siteConfig = useSiteConfig()
     flex="~ col" justify="center" items="center" text="sm" py="1"
   >
     <div v-if="frontmatter.date" class="post-time flex items-center">
-      <span class="inline-flex-center" :title="t('post.posted') + frontmatter.date">
+      <span class="posted-time inline-flex-center" :title="t('post.posted') + frontmatter.date">
         <div class="inline-block" i-ri-calendar-line />
         <time m="l-1">{{ formatDate(frontmatter.date) }}</time>
       </span>
 
       <span
         v-if="frontmatter.updated && frontmatter.updated !== frontmatter.date"
-        class="inline-flex-center" :title="t('post.edited') + frontmatter.updated"
+        class="edited-time inline-flex-center" :title="t('post.edited') + frontmatter.updated"
       >
         <span m="x-2">-</span>
         <div i-ri-calendar-2-line />
@@ -51,15 +51,16 @@ const siteConfig = useSiteConfig()
     >
       <span
         v-if="frontmatter.wordCount"
-        class="inline-flex-center" :title="t('statistics.word')"
+        class="word-count inline-flex-center" :title="t('statistics.word')"
       >
         <div class="inline-block" i-ri-file-word-line />
-        <time m="l-1">{{ frontmatter.wordCount }}</time>
+        <span m="l-1">{{ frontmatter.wordCount }}</span>
       </span>
 
       <span
         v-if="frontmatter.readingTime"
-        class="inline-flex-center" :title="t('statistics.time')"
+        class="reading-time inline-flex-center"
+        :title="t('statistics.time')"
       >
         <span m="x-2">-</span>
         <div i-ri-timer-line />

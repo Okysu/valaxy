@@ -1,21 +1,28 @@
-import { dirname, resolve } from 'node:path'
+import { dirname } from 'node:path'
 import process from 'node:process'
+import { resolve } from 'pathe'
 import fs from 'fs-extra'
 import _debug from 'debug'
 import fg from 'fast-glob'
 import { ensureSuffix, uniq } from '@antfu/utils'
 import defu from 'defu'
-import { cyan, yellow } from 'kolorist'
-import ora from 'ora'
-import type { DefaultTheme, RuntimeConfig } from '../types'
-import { resolveImportPath, slash } from './utils'
-import { mergeValaxyConfig, resolveAddonConfig, resolveValaxyConfig, resolveValaxyConfigFromRoot } from './utils/config'
+import { blue, cyan, magenta, yellow } from 'kolorist'
+import consola from 'consola'
+import type { DefaultTheme, RuntimeConfig } from 'valaxy/types'
+import { resolveImportPath } from './utils'
+import {
+  defaultValaxyConfig,
+  mergeValaxyConfig,
+  resolveAddonConfig,
+  resolveThemeConfigFromRoot,
+  resolveValaxyConfig,
+  resolveValaxyConfigFromRoot,
+} from './config'
 import type { ValaxyAddonResolver, ValaxyNodeConfig } from './types'
-import { defaultValaxyConfig } from './config'
 import { parseAddons } from './utils/addons'
 import { getThemeRoot } from './utils/theme'
 import { resolveSiteConfig } from './config/site'
-import { resolveThemeConfig } from './config/theme'
+import { countPerformanceTime } from './utils/performance'
 
 // for cli entry
 export interface ValaxyEntryOptions {
@@ -51,7 +58,7 @@ export interface ResolvedValaxyOptions<ThemeConfig = DefaultTheme.Config> {
    */
   addonRoots: string[]
   /**
-   * Theme name
+   * clientRoot, themeRoot, ...addonRoots, userRoot
    */
   roots: string[]
   theme: string
@@ -155,29 +162,41 @@ export async function resolveOptions(
 ) {
   const pkgRoot = dirname(resolveImportPath('valaxy/package.json', true))
   const clientRoot = resolve(pkgRoot, 'client')
-  const userRoot = slash(resolve(options.userRoot || process.cwd()))
+  const userRoot = resolve(options.userRoot || process.cwd())
 
-  let { config: userValaxyConfig, configFile, theme } = await resolveValaxyConfig(options)
-  const { siteConfig, siteConfigFile } = await resolveSiteConfig(options.userRoot)
-  const { themeConfig, themeConfigFile } = await resolveThemeConfig(options.userRoot)
+  consola.start(`Resolve ${magenta('valaxy')} config...`)
+  const [resolvedValaxy, resolvedSite, resolvedTheme, pages] = await Promise.all([
+    resolveValaxyConfig(options),
+    resolveSiteConfig(options.userRoot),
+    // resolveThemeConfig(options),
+    resolveThemeConfigFromRoot(options.userRoot),
 
-  // merge with valaxy
-  userValaxyConfig = defu<ValaxyNodeConfig, any>({ siteConfig }, { themeConfig }, userValaxyConfig)
+    fg(['**.md'], {
+      cwd: resolve(userRoot, 'pages'),
+      ignore: ['**/node_modules'],
+    }),
+  ])
+
+  let { config: userValaxyConfig, configFile, theme } = resolvedValaxy
 
   const themeRoot = getThemeRoot(theme, options.userRoot)
 
+  const { siteConfig, siteConfigFile } = resolvedSite
+
+  const { config: themeConfig, configFile: themeConfigFile } = resolvedTheme
+  const { config: defaultThemeConfig } = await resolveThemeConfigFromRoot(themeRoot)
+  const userThemeConfig = defu(themeConfig, defaultThemeConfig)
+
+  // merge with valaxy
+  userValaxyConfig = defu<ValaxyNodeConfig, any>({ siteConfig }, { themeConfig: userThemeConfig }, userValaxyConfig)
+
+  // pages
   // Important: fast-glob doesn't guarantee order of the returned files.
   // We must sort the pages so the input list to rollup is stable across
   // builds - otherwise different input order could result in different exports
   // order in shared chunks which in turns invalidates the hash of every chunk!
   // JavaScript built-in sort() is mandated to be stable as of ES2019 and
   // supported in Node 12+, which is required by Vite.
-  const pages = (
-    await fg(['**.md'], {
-      cwd: resolve(userRoot, 'pages'),
-      ignore: ['**/node_modules'],
-    })
-  ).sort()
 
   let valaxyOptions: ResolvedValaxyOptions = {
     mode,
@@ -195,7 +214,7 @@ export async function resolveOptions(
     configFile: configFile || '',
     siteConfigFile: siteConfigFile || '',
     themeConfigFile: themeConfigFile || '',
-    pages,
+    pages: pages.sort(),
     addons: [],
   }
   debug(valaxyOptions)
@@ -213,8 +232,11 @@ export async function resolveOptions(
  * @param options
  */
 export async function resolveThemeValaxyConfig(options: ResolvedValaxyOptions) {
-  const spinner = ora(`Resolve ${cyan('valaxy.config.ts')} from ${yellow(`theme(${options.theme})`)}`).start()
+  const endCount = countPerformanceTime()
   const { config: themeValaxyConfig } = await resolveValaxyConfigFromRoot(options.themeRoot, options)
-  spinner.succeed()
+  const duration = endCount()
+
+  if (themeValaxyConfig)
+    consola.success(`Resolve ${cyan('valaxy.config.ts')} from ${blue(`theme(${options.theme})`)} ${yellow(duration)}`)
   return themeValaxyConfig
 }

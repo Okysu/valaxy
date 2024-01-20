@@ -44,23 +44,20 @@ onContentUpdated(() => {
         // only intercept inbound links
         if (
           !e.ctrlKey
-            && !e.shiftKey
-            && !e.altKey
-            && !e.metaKey
-            && target !== '_blank'
-            && protocol === currentUrl.protocol
-            && hostname === currentUrl.hostname
-            && !(extMatch && extMatch[0] !== '.html')
+          && !e.shiftKey
+          && !e.altKey
+          && !e.metaKey
+          && target !== '_blank'
+          && protocol === currentUrl.protocol
+          && hostname === currentUrl.hostname
+          && !(extMatch && extMatch[0] !== '.html')
         ) {
           if (pathname === currentUrl.pathname) {
             e.preventDefault()
             // scroll between hash anchors in the same page
             if (hash && hash !== currentUrl.hash) {
-              await router.push({ hash })
-              history.replaceState({ ...history.state }, '')
+              await router.push({ hash: decodeURIComponent(hash) })
 
-              // still emit the event so we can listen to it in themes
-              window.dispatchEvent(new Event('hashchange'))
               // use smooth scroll when clicking on header anchor links
               scrollTo(link, hash, link.classList.contains('header-anchor'))
             }
@@ -94,7 +91,7 @@ onContentUpdated(() => {
                 <Transition appear>
                   <ValaxyMd :frontmatter="frontmatter">
                     <YunAiExcerpt v-if="frontmatter.excerpt_type === 'ai' && frontmatter.excerpt" />
-                    <YunMdTimeWarning :frontmatter="frontmatter" />
+                    <YunMdTimeWarning />
 
                     <slot name="main-content-md" />
                     <slot />

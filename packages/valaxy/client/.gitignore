@@ -1,3 +1,5 @@
-# ignore it
+# unplugin-vue-components
 components.d.ts
-index.html
+
+# unplugin-vue-router
+typed-router.d.ts

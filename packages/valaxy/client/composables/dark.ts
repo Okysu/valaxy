@@ -1,10 +1,16 @@
 import { useDark, useToggle } from '@vueuse/core'
 
+import 'valaxy/client/styles/common/view-transition.css'
+
 export const isDark = useDark()
 export const toggleDark = useToggle(isDark)
 
-export function toggleDarkWithTransition(event: MouseEvent, options: { duration?: number; easing?: EffectTiming['easing'] } = {}) {
-  // toggleDark()
+export function toggleDarkWithTransition(event: MouseEvent, options: { duration?: number, easing?: EffectTiming['easing'] } = {}) {
+  // @ts-expect-error startViewTransition is not defined
+  if (!document.startViewTransition) {
+    toggleDark()
+    return
+  }
 
   const x = event.clientX
   const y = event.clientY

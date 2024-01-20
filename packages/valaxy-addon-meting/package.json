@@ -1,0 +1,15 @@
+{
+  "name": "valaxy-addon-meting",
+  "global": true,
+  "version": "0.0.4",
+  "license": "MIT",
+  "repository": {
+    "url": "https://github.com/YunYouJun/valaxy/tree/main/packages/valaxy-addon-meting",
+    "type": "git"
+  },
+  "keywords": [
+    "valaxy",
+    "addon",
+    "meting"
+  ]
+}

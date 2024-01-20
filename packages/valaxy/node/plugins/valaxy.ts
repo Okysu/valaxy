@@ -2,21 +2,23 @@
  * @packageDocumentation valaxy plugin
  */
 
-import { join, relative, resolve } from 'node:path'
+import { join, relative, resolve } from 'pathe'
 import fs from 'fs-extra'
 
 import type { Plugin, ResolvedConfig } from 'vite'
 import { defu } from 'defu'
 import pascalCase from 'pascalcase'
-import { defaultSiteConfig } from '../config'
+import type { DefaultTheme, PageDataPayload, Pkg, SiteConfig } from 'valaxy/types'
+import { dim, yellow } from 'kolorist'
+import { defaultSiteConfig, mergeValaxyConfig, resolveSiteConfig, resolveUserThemeConfig } from '../config'
 import type { ResolvedValaxyOptions, ValaxyServerOptions } from '../options'
 import { processValaxyOptions, resolveOptions, resolveThemeValaxyConfig } from '../options'
-import { mergeValaxyConfig, resolveImportPath, slash, toAtFS } from '../utils'
+import { resolveImportPath, toAtFS } from '../utils'
 import { createMarkdownToVueRenderFn } from '../markdown/markdownToVue'
-import type { PageDataPayload, SiteConfig } from '../../types'
 import type { ValaxyNodeConfig } from '../types'
 import { checkMd } from '../markdown/check'
-import { resolveSiteConfig } from '../config/site'
+import { vLogger } from '../logger'
+import { countPerformanceTime } from '../utils/performance'
 
 /**
  * for /@valaxyjs/styles
@@ -230,6 +232,7 @@ export function createValaxyPlugin(options: ResolvedValaxyOptions, serverOptions
      * @param ctx
      */
     async handleHotUpdate(ctx) {
+      const endCount = countPerformanceTime()
       const { file, server, read } = ctx
 
       const reloadConfigAndEntries = (config: ValaxyNodeConfig) => {
@@ -263,18 +266,20 @@ export function createValaxyPlugin(options: ResolvedValaxyOptions, serverOptions
 
       // themeConfig
       if (file === options.themeConfigFile) {
-        const { config } = await resolveOptions({ userRoot: options.userRoot })
-        return reloadConfigAndEntries(config)
+        const { themeConfig } = await resolveUserThemeConfig(options)
+        const pkg = valaxyConfig.themeConfig.pkg
+        // @ts-expect-error mount pkg
+        themeConfig.pkg = pkg
+        valaxyConfig.themeConfig = themeConfig as (DefaultTheme.Config & { pkg: Pkg })
+        return reloadConfigAndEntries(valaxyConfig)
       }
 
       if (file === resolve(options.themeRoot, 'valaxy.config.ts')) {
-        const themeValaxyConfig = resolveThemeValaxyConfig(options)
+        const themeValaxyConfig = await resolveThemeValaxyConfig(options)
         const valaxyConfig = mergeValaxyConfig(options.config, themeValaxyConfig)
         const { config } = await processValaxyOptions(options, valaxyConfig)
         return reloadConfigAndEntries(config)
       }
-
-      // if (file === options.siteConfigFile) {}
 
       // send headers
       if (file.endsWith('.md')) {
@@ -285,9 +290,8 @@ export function createValaxyPlugin(options: ResolvedValaxyOptions, serverOptions
           join(options.userRoot, 'public'),
         )
 
-        const path = `/${slash(relative(`${options.userRoot}/pages`, file))}`
+        const path = `/${relative(`${options.userRoot}/pages`, file)}`
         const payload: PageDataPayload = {
-          // path: `/${slash(relative(srcDir, file))}`,
           path,
           pageData,
         }
@@ -300,6 +304,8 @@ export function createValaxyPlugin(options: ResolvedValaxyOptions, serverOptions
 
         // overwrite src so vue plugin can handle the HMR
         ctx.read = () => vueSrc
+
+        vLogger.success(`${yellow('[HMR]')} ${path} ${dim(`updated in ${endCount()}`)}`)
       }
     },
   }

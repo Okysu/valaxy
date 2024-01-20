@@ -5,10 +5,10 @@
   },
   "type": "module",
   "scripts": {
-    "build": "npm run fuse && npm run build:ssg && npm run rss",
+    "build": "npm run fuse && npm run build:ssg",
     "build:spa": "valaxy build",
     "build:ssg": "valaxy build --ssg --log=info",
-    "dev": "nodemon -w \"../../packages/valaxy/dist/*.mjs\" --exec \"valaxy . --port 3333\"",
+    "dev": "nodemon -w \"../../packages/valaxy/dist/*.mjs\" --exec \"valaxy . --port 4860\"",
     "fuse": "valaxy fuse",
     "new": "valaxy new",
     "rss": "valaxy rss",
@@ -17,15 +17,16 @@
   "dependencies": {
     "valaxy": "workspace:*",
     "valaxy-addon-algolia": "workspace:*",
+    "valaxy-addon-bangumi": "workspace:*",
     "valaxy-addon-components": "workspace:*",
     "valaxy-addon-lightgallery": "workspace:*",
+    "valaxy-addon-meting": "workspace:*",
     "valaxy-addon-twikoo": "workspace:*",
     "valaxy-addon-waline": "workspace:*",
     "valaxy-theme-yun": "workspace:*"
   },
   "devDependencies": {
-    "nodemon": "^3.0.1",
-    "vite-plugin-inspect": "^0.7.40",
-    "vite-plugin-pwa": "^0.16.5"
+    "nodemon": "^3.0.3",
+    "vite-plugin-pwa": "^0.17.4"
   }
 }

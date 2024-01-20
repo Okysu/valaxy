@@ -1,5 +1,5 @@
-import { resolve } from 'node:path'
 import process from 'node:process'
+import { resolve } from 'pathe'
 import fs from 'fs-extra'
 import defu from 'defu'
 import { cyan, dim, yellow } from 'kolorist'
@@ -34,7 +34,7 @@ export async function parseAddons(addons: ValaxyAddons, userRoot = process.cwd()
   spinner.succeed()
   const resolvedAddons = Object.values(resolvers).filter(item => item.enable)
   resolvedAddons.forEach((addon, i) => {
-    logger.log(`  ${i === resolvedAddons.length - 1 ? '└─' : '├─'} ${yellow(addon.name)}${addon.global ? cyan(' (global)') : ''} ${dim(addon.pkg.homepage || addon.pkg.repository)}`)
+    logger.log(`  ${i === resolvedAddons.length - 1 ? '└─' : '├─'} ${yellow(addon.name)}${addon.global ? cyan(' (global)') : ''} ${dim(addon.pkg.homepage || addon.pkg.repository?.url || addon.pkg.repository)}`)
   })
   return resolvedAddons
 }

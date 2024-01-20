@@ -1,3 +1,5 @@
+import type { ImageObject, NodeRelations } from '@unhead/schema-org'
+
 export interface Album {
   /**
    * @description:en-US Album Link
@@ -70,6 +72,9 @@ export interface PageFrontMatter extends Record<string, any> {
    * @description 是否显示文章底部版权信息
    */
   copyright: boolean
+
+  // schema
+  image: NodeRelations<ImageObject | string>
 
   /**
    * cover
@@ -159,9 +164,18 @@ export interface PageFrontMatter extends Record<string, any> {
    */
   encryptedContent?: string
   /**
+   * @description:zh-CN 部分加密的内容
+   */
+  partiallyEncryptedContents?: string[]
+  /**
    * @description:zh-CN 加密后的相册
    */
   encryptedPhotos?: string
+  /**
+   * @description:en-US Limit the height of the code block in px
+   * @description:zh-CN 限制代码块的高度，单位是 px
+   */
+  codeHeightLimit?: number
 }
 
 export interface PostFrontMatter extends PageFrontMatter {

@@ -12,9 +12,10 @@ import { useStorage } from '@vueuse/core'
 
 import type { Router } from 'vue-router'
 import { ensureSuffix } from '@antfu/utils'
-import type { UserModule } from 'valaxy/client/types'
+import type { ComputedRef } from 'vue'
+import type { ViteSSGContext } from 'vite-ssg'
+import type { DefaultTheme, ValaxyConfig } from 'valaxy/types'
 import type { PageDataPayload } from '../../types'
-import { initValaxyConfig, valaxyConfigSymbol } from '../config'
 
 // @ts-expect-error virtual
 import valaxyMessages from '/@valaxyjs/locales'
@@ -38,16 +39,11 @@ import valaxyMessages from '/@valaxyjs/locales'
 function shouldHotReload(payload: PageDataPayload): boolean {
   const payloadPath = payload.path.replace(/(\bindex)?\.md$/, '')
   const locationPath = location.pathname.replace(/(\bindex)?\.html$/, '')
-  // console.log(payloadPath, locationPath)
-  return ensureSuffix('/', payloadPath) === ensureSuffix('/', locationPath)
+  return ensureSuffix('/', encodeURI(payloadPath)) === ensureSuffix('/', encodeURI(locationPath))
 }
 
-export const install: UserModule = ({ app, router }) => {
-  // inject valaxy config before modules
-  const config = initValaxyConfig()
-  app.provide(valaxyConfigSymbol, config)
-
-  const locale = useStorage('valaxy-locale', config.value.siteConfig.lang || 'en')
+export async function install({ app, router }: ViteSSGContext, config: ComputedRef<ValaxyConfig<DefaultTheme.Config>>) {
+  const locale = useStorage('valaxy-locale', config?.value.siteConfig.lang || 'en')
 
   // init i18n, by valaxy config
   const i18n = createI18n({
@@ -65,7 +61,7 @@ export const install: UserModule = ({ app, router }) => {
 function handleHMR(router: Router): void {
   // update route.data on HMR updates of active page
   if (import.meta.hot) {
-    import.meta.hot!.on('valaxy:pageData', (payload: PageDataPayload) => {
+    import.meta.hot.on('valaxy:pageData', (payload: PageDataPayload) => {
       if (shouldHotReload(payload)) {
         // console.log(payload.pageData.headers)
         Object.assign(router.currentRoute.value.meta, payload.pageData)

@@ -14,7 +14,7 @@ const { back } = useBack()
       404
     </div>
 
-    <router-view />
+    <!-- <RouterView /> -->
 
     <div>
       <button class="btn rounded-full" p="x-6 y-2" text="sm" m="3 t8" :title="t('button.back')" @click="back">
@@ -25,7 +25,6 @@ const { back } = useBack()
 </template>
 
 <style lang="scss" scoped>
-// inspired by https://codepen.io/pgalor/pen/OeRWJQ
 .not-found {
   font-size: 10rem;
   text-shadow: 0 5px 10px rgba(0,0,0,.25), 0 20px 20px rgba(0,0,0,.15);

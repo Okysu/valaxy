@@ -45,7 +45,7 @@ npm run build
 
 #### GitHub Pages
 
-<BrandIcon icon="i-simple-icons-github" link="https://pages.github.com/" />
+<BrandIcon icon="i-logos:github-icon" link="https://pages.github.com/" />
 
 ::: zh-CN
 在使用 `pnpm create valaxy` 创建模版项目时，已内置文件[`.github/workflows/gh-pages.yml`](https://github.com/YunYouJun/valaxy/blob/main/packages/create-valaxy/template-blog/.github/workflows/gh-pages.yml) 以实现 GitHub Actions 的自动部署工作流。
@@ -55,11 +55,9 @@ npm run build
 
 > `gh-pages` 已由 `.github/workflows/gh-pages.yml` 自动部署。
 
-
 > 注意修改 `gh-pages.yml` 中的 `on.push.branches` 为你源代码所在的分支，默认为 `main`。
 
 :::
-
 
 ::: en
 When you use `pnpm create valaxy` to create a template project, it contains the file [`.github/workflows/gh-pages.yml`](https://github.com/YunYouJun/valaxy/blob/main/packages/create-valaxy/template-blog/.github/workflows/gh-pages.yml) for the CI workflow of GitHub Actions.
@@ -75,7 +73,7 @@ When you use `pnpm create valaxy` to create a template project, it contains the 
 
 #### Netlify
 
-<BrandIcon icon="i-simple-icons-netlify" link="https://www.netlify.com/" />
+<BrandIcon icon="i-logos:netlify-icon" link="https://www.netlify.com/" />
 
 ::: zh-CN
 已内置 `netlify.toml`。
@@ -89,9 +87,10 @@ When you use `pnpm create valaxy` to create a template project, it contains the 
 
 #### Vercel
 
-<BrandIcon icon="i-simple-icons-vercel" link="https://vercel.com/" />
+<BrandIcon icon="i-logos:vercel-icon" link="https://vercel.com/" />
 
 ::: zh-CN
+
 - 在 Vercel 的 Dashboard 上，点击 `Add New...`，随后点击 `Project` 新建一个项目。
 - 在左侧选择要部署的仓库，点击 `Import`，随后将 `Framework Preset` 设置为 `Other` 并更改 `Build and Output Settings`。
 - 将 `Output Directory` 设置为 `dist` 后，点击 `Deploy`。
@@ -99,6 +98,7 @@ When you use `pnpm create valaxy` to create a template project, it contains the 
 :::
 
 ::: en
+
 - On Vercel Dashboard, click `Add New...`, then click `Project` to create a project.
 - Select the repository you want to deploy and click `Import` and then set `Framework Preset` to `Other` and modify `Build and Output Settings`.
 - Turn on the switch on the right of the textbox and type `dist`, click `Deploy`.
@@ -107,13 +107,15 @@ When you use `pnpm create valaxy` to create a template project, it contains the 
 
 #### Cloudflare Pages
 
-<BrandIcon icon="i-simple-icons-cloudflare" link="https://pages.cloudflare.com/" />
+<BrandIcon icon="i-logos:cloudflare-icon" link="https://pages.cloudflare.com/" />
 
 ::: zh-CN
 
 - 登录你的 Cloudflare 账号，导航到 “Pages” 页面。
 - 点击 `创建项目`、`连接到 Git`，选择你的 GitHub 或者 GitLab 仓库，并点击 `开始设置`。
-- 选择你的部署分支，将 `构建输出目录` 设置为 `dist` 后添加一个环境变量。
+- 选择你的部署分支。
+- 将 `构建命令` 设置为 `npm run build` 。
+- 将 `构建输出目录` 设置为 `dist` 后添加一个环境变量。
 
 > `NODE_VERSION`: `16` （设置 Node 版本）
 
@@ -121,9 +123,12 @@ When you use `pnpm create valaxy` to create a template project, it contains the 
 :::
 
 ::: en
+
 - Login to your Cloudflare account and navigate to "Pages" page.
 - Click `Create a project` and `Connect to Git`, then select your GitHub or GitLab repository and click `Begin setup`.
-- Select your Production branch, set `Build output directory` to `dist` and add an environment variable.
+- Select your Production branch.
+- Set `Build output directory` to `npm run build` .
+- Set `Build output directory` to `dist` and add an environment variable.
 
 > `NODE_VERSION`: `16` (Set Node version)
 
@@ -134,7 +139,7 @@ When you use `pnpm create valaxy` to create a template project, it contains the 
 
 #### Others {lang="en"}
 
-<BrandIcon icon="i-simple-icons-render" link="https://render.com/" />
+<BrandIcon class="text-xl!" icon="i-simple-icons-render" link="https://render.com/" />
 
 ::: zh-CN
 你还可以使用 [Render](https://render.com/) 等进行托管。

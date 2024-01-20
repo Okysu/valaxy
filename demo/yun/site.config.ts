@@ -1,6 +1,10 @@
 import { defineSiteConfig } from 'valaxy'
 
 export default defineSiteConfig({
+  frontmatter: {
+    // time_warning: true,
+  },
+
   lang: 'zh-CN',
   title: 'Valaxy Theme Yun',
   timezone: 'Asia/Shanghai',
@@ -140,4 +144,11 @@ export default defineSiteConfig({
   encrypt: {
     enable: true,
   },
+
+  redirects: [
+    {
+      from: '/foo',
+      to: '/about',
+    },
+  ],
 })

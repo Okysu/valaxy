@@ -5,6 +5,7 @@ import { useSiteConfig } from '../..'
 
 /**
  * use MetingJS and Aplayer
+ * @deprecated will migrate to valaxy-addon-meting
  * @see https://github.com/MoePlayer/APlayer
  * @see https://github.com/metowolf/MetingJS
  */

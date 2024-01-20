@@ -17,7 +17,7 @@ import { createUnocssPlugin } from './unocss'
 import { createConfigPlugin } from './extendConfig'
 import { createClientSetupPlugin } from './setupClient'
 import { createFixPlugins } from './patchTransform'
-import { createPagesPlugin } from './pages'
+import { createRouterPlugin } from './vueRouter'
 import { createValaxyPlugin } from './valaxy'
 
 // for render markdown excerpt
@@ -26,7 +26,7 @@ export const mdIt = new MarkdownIt({ html: true })
 export async function ViteValaxyPlugins(
   options: ResolvedValaxyOptions,
   serverOptions: ValaxyServerOptions = {},
-): Promise<(PluginOption | PluginOption[])[] | undefined> {
+): Promise<(PluginOption | PluginOption[])[]> {
   const { roots, config: valaxyConfig } = options
 
   // setup mdIt
@@ -63,10 +63,15 @@ export async function ViteValaxyPlugins(
     'semantics',
 
     // meting
+    // will migrate to valaxy-addon-meting
     'meting-js',
   ])
 
   return [
+    createValaxyPlugin(options, serverOptions),
+    createConfigPlugin(options),
+    createClientSetupPlugin(options),
+
     Vue({
       include: [/\.vue$/, /\.md$/],
       template: {
@@ -81,16 +86,15 @@ export async function ViteValaxyPlugins(
     }),
 
     UnheadVite(),
-    createConfigPlugin(options),
-    createClientSetupPlugin(options),
-    createValaxyPlugin(options, serverOptions),
 
-    // https://github.com/hannoeru/vite-plugin-pages
-    createPagesPlugin(options),
+    // https://github.com/posva/unplugin-vue-router
+    createRouterPlugin(options),
 
     // https://github.com/JohnCampionJr/vite-plugin-vue-layouts
     Layouts({
       layoutsDirs: roots.map(root => `${root}/layouts`),
+
+      ...valaxyConfig.layouts,
     }),
 
     // https://github.com/antfu/unplugin-vue-components
@@ -107,7 +111,6 @@ export async function ViteValaxyPlugins(
       // latter override former
       dirs: roots
         .map(root => `${root}/components`)
-        .concat(roots.map(root => `${root}/layouts`))
         .concat(['src/components', 'components']),
       dts: `${options.userRoot}/components.d.ts`,
 

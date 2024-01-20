@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { onMounted, onUpdated, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { onContentUpdated, runContentUpdated, useAplayer, useCodePen, useCopyCode, useMediumZoom, wrapTable } from 'valaxy'
+import { onContentUpdated, runContentUpdated, useAplayer, useCodePen, useCollapseCode, useCopyCode, useMediumZoom, wrapTable } from 'valaxy'
 import type { Post } from 'valaxy'
 import { useVanillaLazyLoad } from '../composables/features/vanilla-lazyload'
 import { useCodeGroups } from '../composables/codeGroups'
@@ -35,6 +35,7 @@ if (props.frontmatter.codepen)
 
 useCopyCode()
 useCodeGroups()
+useCollapseCode()
 
 if (typeof props.frontmatter.medium_zoom === 'undefined' || props.frontmatter.medium_zoom)
   useMediumZoom()
@@ -65,7 +66,7 @@ useVanillaLazyLoad()
     <slot v-if="frontmatter.end !== undefined" name="end">
       <div m="y-4" class="end flex justify-center items-center">
         <hr class="line inline-flex" w="full" m="!y-2">
-        <span p="x-4" font="serif bold" class="whitespace-nowrap">
+        <span p="x-4" font="bold" class="whitespace-nowrap">
           {{ frontmatter.end ? 'Q.E.D.' : 'To Be Continued.' }}
         </span>
         <hr class="line inline-flex" w="full" m="!y-2">

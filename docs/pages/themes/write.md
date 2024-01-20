@@ -103,15 +103,21 @@ pnpm create valaxy
 
 我们提供了一个扩展函数，以供你快速扩展页面信息。
 
-你也可以直接扩展 [vite-plugin-pages](https://github.com/hannoeru/vite-plugin-pages) 插件中的 `extendRoute`。
+<!-- TODO -->
+
+你也可以直接扩展 [unplugin-vue-router](https://github.com/posva/unplugin-vue-router) 插件中的 `extendRoute`。
+
+> <https://github.com/posva/unplugin-vue-router/issues/43#issuecomment-1433140464>
 
 ```ts
 // valaxy.config.ts
 import { defineTheme } from 'valaxy'
 
 export default defineTheme({
-  pages: {
-    extendRoute(route, parent) {
+  router: {
+    extendRoute(route) {
+      // want to get component absolute paths?
+      // const path = route.components.get('default')
       console.log(route)
     },
   },
@@ -122,6 +128,8 @@ export default defineTheme({
 ```
 
 ```ts
+import type { EditableTreeNode } from 'unplugin-vue-router'
+
 // provided by valaxy, just as a tip
 export interface ValaxyConfig {
   vue?: Parameters<typeof Vue>[0]
@@ -129,11 +137,7 @@ export interface ValaxyConfig {
   unocss?: UnoCSSConfig
   pages?: Parameters<typeof Pages>[0]
   extendMd?: (ctx: {
-    route: {
-      meta: { frontmatter?: Record<string, any>; layout?: string }
-      path: string
-      component: string
-    }
+    route: EditableTreeNode
     data: Readonly<Record<string, any>>
     excerpt?: string
     path: string
@@ -184,7 +188,6 @@ onMounted(() => {
 </template>
 ```
 
-
 ### ValaxyMain
 
 你需要自定义一个 `ValaxyMain` 组件来决定主题的文章渲染部分。
@@ -215,8 +218,6 @@ defineProps<{
 
 > 示例可参考 [ValaxyMain.vue | valaxy-theme-yun](https://github.com/YunYouJun/valaxy/blob/main/packages/valaxy-theme-yun/components/ValaxyMain.vue)
 
-
-
 ## 样式
 
 ### Markdown 样式
@@ -227,6 +228,28 @@ Markdown 样式是主题呈现文章样式的部分，需要由主题自定义�
 
 > 如果你想先使用常见的默认样式（后续再进行定制），你可以直接使用 [star-markdown-css](https://github.com/YunYouJun/star-markdown-css)。
 > 使用方式可参见 [valaxy-theme-yun/styles](https://github.com/YunYouJun/valaxy/blob/main/packages/valaxy-theme-yun/styles/index.scss)
+
+### NProgress 进度条
+
+内置了基础的 [nprogress](https://github.com/rstacruz/nprogress) 样式，你可以通过覆盖 nprogress 的默认样式进行定制：
+
+```scss
+// your-theme/styles/index.scss
+#nprogress {
+  pointer-events: none;
+
+  .bar {
+    background: var(--va-c-primary);
+    opacity: 0.75;
+    position: fixed;
+    z-index: 1024;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 2px;
+  }
+}
+```
 
 ## 功能
 
@@ -390,7 +413,7 @@ import valaxyLogoPng from '../assets/images/valaxy-logo.png'
 
 Valaxy 决定通过插件中心化地提供各类封装好的评论组件和辅助函数。
 
-譬如主题开发者，可以借助 `valaxy-addon-waline` 来快速实现 [Waline](https://waline.js.org/) 评论系统的集成。  
+譬如主题开发者，可以借助 `valaxy-addon-waline` 来快速实现 [Waline](https://waline.js.org/) 评论系统的集成。
 而用户则可以使用相同的配置穿梭漫游于不同的主题之间。
 
 > 集成参见 [valaxy-addon-waline](https://github.com/YunYouJun/valaxy/blob/main/packages/valaxy-addon-waline/README.md)。

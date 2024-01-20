@@ -3,7 +3,7 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "build": "npm run build:ssg && npm run rss",
+    "build": "npm run build:ssg",
     "build:spa": "valaxy build",
     "build:ssg": "valaxy build --ssg",
     "dev": "nodemon -w \"../packages/valaxy/dist/*.mjs\" --exec \"valaxy .\"",
@@ -20,10 +20,9 @@
     "valaxy-theme-press": "link:../packages/valaxy-theme-press"
   },
   "devDependencies": {
-    "@iconify-json/simple-icons": "^1.1.75",
-    "nodemon": "^3.0.1",
-    "vite": "^4.5.0",
-    "vitepress": "1.0.0-rc.22",
-    "vue": "^3.3.6"
+    "@iconify-json/simple-icons": "^1.1.88",
+    "nodemon": "^3.0.3",
+    "vite": "^5.0.12",
+    "vitepress": "1.0.0-rc.39"
   }
 }

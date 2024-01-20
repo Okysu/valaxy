@@ -1,11 +1,15 @@
 import type Vue from '@vitejs/plugin-vue'
+
 import type Components from 'unplugin-vue-components/vite'
+import type Layouts from 'vite-plugin-vue-layouts'
+import type Router from 'unplugin-vue-router/vite'
+
 import type { VitePluginConfig as UnoCSSConfig } from 'unocss/vite'
-import type Pages from 'vite-plugin-pages'
+import type { EditableTreeNode } from 'unplugin-vue-router'
 import type { UserConfig as ViteUserConfig } from 'vite'
 import type { presetAttributify, presetIcons, presetTypography, presetUno } from 'unocss'
 import type { Hookable } from 'hookable'
-import type { DefaultTheme, PartialDeep, ValaxyAddon, ValaxyConfig } from '../types'
+import type { DefaultTheme, PartialDeep, ValaxyAddon, ValaxyConfig } from 'valaxy/types'
 import type { ResolvedValaxyOptions } from './options'
 import type { MarkdownOptions } from './markdown/types'
 
@@ -22,6 +26,11 @@ export type HookResult = Promise<void> | void
 export interface ValaxyHooks {
   'options:resolved': () => HookResult
   'config:init': () => HookResult
+  /**
+   * @see valaxy/node/plugins/vueRouter.ts extendRoute
+   */
+  'vue-router:extendRoute': (route: EditableTreeNode) => HookResult
+
   'build:before': () => HookResult
   'build:after': () => HookResult
 }
@@ -31,9 +40,23 @@ export interface ValaxyNode {
 
   hooks: Hookable<ValaxyHooks>
   hook: ValaxyNode['hooks']['hook']
+
+  options: ResolvedValaxyOptions
 }
 
 export interface ValaxyExtendConfig {
+  /**
+   * internal modules
+   */
+  modules: {
+    rss: {
+      /**
+       * enable rss
+       */
+      enable: boolean
+    }
+  }
+
   /**
    * Markdown Feature
    */
@@ -46,7 +69,11 @@ export interface ValaxyExtendConfig {
 
   vite?: ViteUserConfig
   vue?: Parameters<typeof Vue>[0]
+  // unplugin
   components?: Parameters<typeof Components>[0]
+  layouts?: Parameters<typeof Layouts>[0]
+  router?: Parameters<typeof Router>[0]
+
   unocss?: UnoCSSConfig
   /**
    * unocss presets
@@ -57,17 +84,18 @@ export interface ValaxyExtendConfig {
     icons?: Parameters<typeof presetIcons>[0]
     typography?: Parameters<typeof presetTypography>[0]
   }
-  pages?: Parameters<typeof Pages>[0]
+  /**
+   * @experimental
+   * Enable Vue Devtools & Valaxy Devtools
+   * @see https://devtools-next.vuejs.org/
+   */
+  devtools?: boolean
   /**
    * for markdown
    */
   markdown?: MarkdownOptions
   extendMd?: (ctx: {
-    route: {
-      meta: { frontmatter: Record<string, any>; layout?: string } & object
-      path: string
-      component: string
-    }
+    route: EditableTreeNode
     data: Readonly<Record<string, any>>
     content: string
     excerpt?: string

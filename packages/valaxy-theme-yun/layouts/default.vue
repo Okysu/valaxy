@@ -1,7 +1,8 @@
 <template>
-  <Layout>
-    <template #content>
-      <router-view />
-    </template>
-  </Layout>
+  <YunSidebar v-if="$slots['sidebar-child']">
+    <slot name="sidebar-child" />
+  </YunSidebar>
+  <YunSidebar v-else />
+
+  <RouterView />
 </template>

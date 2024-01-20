@@ -2,8 +2,12 @@ import MarkdownIt from 'markdown-it'
 
 import anchorPlugin from 'markdown-it-anchor'
 import attrsPlugin from 'markdown-it-attrs'
-import emojiPlugin from 'markdown-it-emoji'
+
+// @ts-expect-error wait @types/markdown-it-emoji update
+import { full as emojiPlugin } from 'markdown-it-emoji'
 import TaskLists from 'markdown-it-task-lists'
+
+// https://www.npmjs.com/package/markdown-it-image-figures
 import imageFigures from 'markdown-it-image-figures'
 
 import { componentPlugin } from '@mdit-vue/plugin-component'
@@ -21,8 +25,8 @@ import { type TocPluginOptions, tocPlugin } from '@mdit-vue/plugin-toc'
 
 import { slugify } from '@mdit-vue/shared'
 import { cssI18nContainer } from 'css-i18n'
+import type { Header } from 'valaxy/types'
 import type { ResolvedValaxyOptions } from '../options'
-import type { Header } from '../../types'
 import Katex from './plugins/markdown-it/katex'
 import { containerPlugin } from './plugins/markdown-it/container'
 import { highlight } from './plugins/highlight'
@@ -53,10 +57,16 @@ export async function setupMarkdownPlugins(
 ) {
   const mdOptions = options?.config.markdown || {}
   const theme = mdOptions.theme ?? defaultCodeTheme
+  const siteConfig = options?.config.siteConfig || {}
 
+  if (mdOptions.preConfig)
+    mdOptions.preConfig(md)
+
+  // mdit-vue plugins
+  md.use(componentPlugin, { ...mdOptions.component })
   // custom plugins
   md.use(highlightLinePlugin)
-    .use(preWrapperPlugin, { theme })
+    .use(preWrapperPlugin, { theme, siteConfig })
     .use(snippetPlugin, options?.userRoot)
     .use(containerPlugin, {
       ...mdOptions.blocks,
@@ -75,12 +85,14 @@ export async function setupMarkdownPlugins(
       base,
     )
 
+  // ref vitepress
+  md.use(lineNumberPlugin, mdOptions.lineNumbers)
+
   // conflict with {% %}
   // 3rd party plugins
   if (!mdOptions.attrs?.disable)
     md.use(attrsPlugin, mdOptions.attrs)
 
-  md.use(Katex, mdOptions.katex)
   md.use(emojiPlugin)
 
   if (!isExcerpt) {
@@ -105,6 +117,22 @@ export async function setupMarkdownPlugins(
       ...mdOptions.anchor,
     })
   }
+  md.use(frontmatterPlugin, {
+    ...mdOptions.frontmatter,
+  } as FrontmatterPluginOptions)
+    .use(headersPlugin, {
+      slugify,
+      ...mdOptions.headers,
+    } as HeadersPluginOptions)
+    .use(sfcPlugin, {
+      ...mdOptions.sfc,
+    } as SfcPluginOptions)
+    .use(titlePlugin)
+    .use(tocPlugin, {
+      ...mdOptions.toc,
+    } as TocPluginOptions)
+
+  md.use(Katex, mdOptions.katex)
 
   const vanillaLazyload = options?.config.siteConfig.vanillaLazyload || { enable: false }
   // markdown-it-image-figures
@@ -117,35 +145,17 @@ export async function setupMarkdownPlugins(
     // removeSrc and classes are required by vanilla-lazyload
     ...(vanillaLazyload.enable
       ? {
-          lazy: false,
-          async: false,
-          removeSrc: true,
+          lazy: true,
+          async: true,
           classes: 'lazy',
+          // when removeSrc, vite can not handle relative path
+          // removeSrc in useVanillaLazyload onMounted
+          // removeSrc: true,
         }
       : {}),
 
     ...mdOptions.imageFigures,
   })
-
-  // mdit-vue plugins
-  md.use(componentPlugin)
-    .use(frontmatterPlugin, {
-      ...mdOptions.frontmatter,
-    } as FrontmatterPluginOptions)
-    .use(headersPlugin, {
-      slugify,
-      ...mdOptions.headers,
-    } as HeadersPluginOptions)
-    .use(sfcPlugin, {
-      ...mdOptions.sfc,
-    } as SfcPluginOptions)
-    .use(titlePlugin)
-    .use(tocPlugin, {
-      slugify,
-      ...mdOptions.toc,
-    } as TocPluginOptions)
-  // ref vitepress
-  md.use(lineNumberPlugin, mdOptions.lineNumbers)
 
   md.use(TaskLists)
 

@@ -1,20 +1,19 @@
 // copy from vitepress
-import path from 'node:path'
 import fs from 'fs-extra'
 import c from 'picocolors'
 import { LRUCache } from 'lru-cache'
 import _debug from 'debug'
 import { resolveTitleFromToken } from '@mdit-vue/shared'
+import type { CleanUrlsMode, HeadConfig, PageData } from 'valaxy/types'
+import path from 'pathe'
 import { EXTERNAL_URL_RE } from '../constants'
 import { getGitTimestamp, slash, transformObject } from '../utils'
-import type { CleanUrlsMode, HeadConfig, PageData } from '../../types'
 import type { ResolvedValaxyOptions } from '../options'
 import { encryptContent } from '../utils/encrypt'
 import { processIncludes } from './utils/processInclude'
 import { createMarkdownRenderer } from '.'
 import type { MarkdownEnv, MarkdownRenderer } from '.'
 
-const jsStringBreaker = '\u200B'
 const vueTemplateBreaker = '<wbr>'
 
 const debug = _debug('vitepress:md')
@@ -93,6 +92,21 @@ function inferDescription(frontmatter: Record<string, any>) {
   return (head && getHeadMetaContent(head, 'description')) || ''
 }
 
+function handleCodeHeightlimit(mainContentMd: string, options: ResolvedValaxyOptions, codeHeightLimit?: number): string {
+  if (typeof codeHeightLimit !== 'number' || codeHeightLimit <= 0)
+    return mainContentMd
+
+  const siteConfigLimit = options.config.siteConfig.codeHeightLimit
+  mainContentMd = mainContentMd.replaceAll(/<div.+class="language-\w+">/g, (matchStr) => {
+    if (siteConfigLimit !== undefined && siteConfigLimit > 0)
+      matchStr = matchStr.replace(/\d+/, codeHeightLimit.toString())
+    else matchStr = `${matchStr.slice(0, 5)}style="max-height: ${codeHeightLimit}px;"${matchStr.slice(5)}`
+
+    return matchStr
+  })
+  return mainContentMd
+}
+
 export async function createMarkdownToVueRenderFn(
   options: ResolvedValaxyOptions,
   srcDir: string,
@@ -106,7 +120,7 @@ export async function createMarkdownToVueRenderFn(
   const md = await createMarkdownRenderer(options)
 
   // for dead link detection
-  pages = pages.map(p => slash(p.replace(/\.md$/, '')).replace(/\/index$/, ''))
+  pages = pages.map(p => p.replace(/\.md$/, '').replace(/\/index$/, ''))
 
   const replaceRegex = genReplaceRegexp(userDefines, isBuild)
 
@@ -117,7 +131,7 @@ export async function createMarkdownToVueRenderFn(
   ): Promise<MarkdownCompileResult> => {
     const fileOrig = file
     const dir = path.dirname(file)
-    const relativePath = slash(path.relative(srcDir, file))
+    const relativePath = path.relative(srcDir, file)
 
     const cacheKey = JSON.stringify({ src, file: fileOrig })
 
@@ -136,7 +150,7 @@ export async function createMarkdownToVueRenderFn(
       try {
         const includePath = path.join(dir, m1)
         const content = fs.readFileSync(includePath, 'utf-8')
-        includes.push(slash(includePath))
+        includes.push(includePath)
         return content
       }
       catch (error) {
@@ -204,8 +218,8 @@ export async function createMarkdownToVueRenderFn(
                 )
               : (
                   pages.includes(resolved)
-              || fs.existsSync(path.resolve(dir, publicDir, `${resolved}.html`))
-              || fs.existsSync(path.resolve(dir, publicDir, `${resolved}/index.html`))
+                  || fs.existsSync(path.resolve(dir, publicDir, `${resolved}.html`))
+                  || fs.existsSync(path.resolve(dir, publicDir, `${resolved}/index.html`))
                 )
           )
         )
@@ -254,9 +268,35 @@ export async function createMarkdownToVueRenderFn(
       replaceRegex,
       vueTemplateBreaker,
     )
+
+    mainContentMd = handleCodeHeightlimit(mainContentMd, options, frontmatter.codeHeightLimit)
+
     // handle mainContent, encrypt
     const { config: { siteConfig: { encrypt } } } = options
     if (encrypt.enable) {
+      // partial encryption
+      const encryptRegexp = /<!-- valaxy-encrypt-start:(?<password>\w+) -->(?<content>.*?)<!-- valaxy-encrypt-end -->/gs
+      const encryptcommentRegexp = /((<!-- valaxy-encrypt-start:\w+ -->)|(<!-- valaxy-encrypt-end -->))/g
+      if (frontmatter.password) {
+        mainContentMd = mainContentMd.replaceAll(encryptcommentRegexp, '')
+      }
+      else {
+        const partiallyEncryptedContents: string[] = []
+        for (const matchArr of mainContentMd.matchAll(encryptRegexp)) {
+          partiallyEncryptedContents.push(
+            await encryptContent(matchArr.groups!.content, {
+              password: matchArr.groups!.password,
+              iv: encrypt.iv,
+              salt: encrypt.salt,
+            }),
+          )
+        }
+        frontmatter.partiallyEncryptedContents = partiallyEncryptedContents.length ? partiallyEncryptedContents : undefined
+        let i = 0
+        mainContentMd = mainContentMd.replaceAll(encryptRegexp, () => `<ValaxyDecrypt :encrypted-content="frontmatter.partiallyEncryptedContents[${i++}]" />`)
+      }
+
+      // encrypt the entire article
       if (frontmatter.password) {
         const encryptedContent = await encryptContent(mainContentMd, {
           password: frontmatter.password,
@@ -318,13 +358,8 @@ const namedDefaultExportRE = /((?:^|\n|;)\s*)export(.+)as(\s*)default/
 function injectPageDataCode(
   tags: string[],
   data: PageData,
-  replaceRegex: RegExp,
+  _replaceRegex: RegExp,
 ) {
-  const dataJson = JSON.stringify(data)
-  const code = `\nexport const __pageData = JSON.parse(${JSON.stringify(
-    replaceConstants(dataJson, replaceRegex, jsStringBreaker),
-  )})`
-
   const existingScriptIndex = tags.findIndex((tag) => {
     return (
       scriptRE.test(tag)
@@ -335,11 +370,11 @@ function injectPageDataCode(
 
   const isUsingTS = tags.findIndex(tag => scriptLangTsRE.test(tag)) > -1
 
+  // merge lastUpdated
   const exportScript = `
   import { provide } from 'vue'
   import { useRoute } from 'vue-router'
-  const data = ${transformObject(data)}
-
+  export const data = ${transformObject(data)}
   export default {
     name:'${data.relativePath}',
     data() {
@@ -347,7 +382,7 @@ function injectPageDataCode(
     },
     setup() {
       const route = useRoute()
-      route.meta.frontmatter = Object.assign(route.meta.frontmatter, data.frontmatter)
+      route.meta.frontmatter = Object.assign(route.meta.frontmatter || {}, data.frontmatter || {})
       provide('pageData', data)
     }
   }`
@@ -360,8 +395,8 @@ function injectPageDataCode(
       = defaultExportRE.test(tagSrc) || namedDefaultExportRE.test(tagSrc)
     tags[existingScriptIndex] = tagSrc.replace(
       scriptRE,
-      `${code
-        + (hasDefaultExport
+      `${
+        (hasDefaultExport
           ? ''
           : `\n${exportScript}`)
         }</script>`,
@@ -369,7 +404,7 @@ function injectPageDataCode(
   }
   else {
     tags.unshift(
-      `<script ${isUsingTS ? 'lang="ts"' : ''}>${code}\n${exportScript}</script>`,
+      `<script ${isUsingTS ? 'lang="ts"' : ''}>\n${exportScript}</script>`,
     )
   }
 
